@@ -1,18 +1,129 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --navy: #0a0f1e;
+  --navy-mid: #111827;
+  --emerald: #10b981;
+  --emerald-bright: #34d399;
+  --emerald-dark: #065f46;
+  --gold: #f59e0b;
+  --gold-light: #fcd34d;
+  --slate: #1e293b;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #f8fafc;
+  color: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ── 3D card tilt ── */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  will-change: transform;
+}
+
+/* ── Floating animation for hero cards ── */
+@keyframes float-a {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50% { transform: translateY(-14px) rotate(-2deg); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translateY(-8px) rotate(2deg); }
+  50% { transform: translateY(6px) rotate(2deg); }
+}
+@keyframes float-c {
+  0%, 100% { transform: translateY(-4px) rotate(-1deg); }
+  50% { transform: translateY(-18px) rotate(-1deg); }
+}
+.float-a { animation: float-a 4s ease-in-out infinite; }
+.float-b { animation: float-b 5s ease-in-out infinite; }
+.float-c { animation: float-c 3.5s ease-in-out infinite; }
+
+/* ── Animated gradient orbs in hero ── */
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.4; }
+  50% { transform: scale(1.15) translate(-20px, 10px); opacity: 0.6; }
+}
+@keyframes orb-pulse-b {
+  0%, 100% { transform: scale(1.1) translate(0, 0); opacity: 0.3; }
+  50% { transform: scale(0.9) translate(15px, -15px); opacity: 0.5; }
+}
+.orb-a { animation: orb-pulse 8s ease-in-out infinite; }
+.orb-b { animation: orb-pulse-b 10s ease-in-out infinite; }
+
+/* ── Shimmer on skeleton loaders ── */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.75rem;
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #34d399 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glass card ── */
+.glass {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.glass-dark {
+  background: rgba(10, 15, 30, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Leaflet ── */
 .leaflet-container {
   height: 100%;
   width: 100%;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
+}
+
+/* ── Gradient button ── */
+.btn-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(245, 158, 11, 0.5);
+}
+.btn-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-emerald:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(16, 185, 129, 0.45);
+}
+
+/* ── Score badge pulse ── */
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+}
+.badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
+
+/* ── Scroll fade-up (used with framer motion) ── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
