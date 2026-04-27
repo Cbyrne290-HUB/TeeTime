@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { Flag, User, LogOut, LayoutDashboard, ChevronDown, Search } from "lucide-react";
+import { LogOut, LayoutDashboard, ChevronDown, Search, Flag } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Logo } from "./Logo";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -15,7 +16,7 @@ export function Navbar() {
   const isHome = pathname === "/";
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -23,43 +24,40 @@ export function Navbar() {
   const transparent = isHome && !scrolled;
 
   return (
-    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+    <nav className={`sticky top-0 z-50 transition-all duration-500 ${
       transparent
         ? "bg-transparent border-b border-transparent"
-        : "bg-slate-900/95 backdrop-blur-xl border-b border-white/8 shadow-xl"
-    }`}>
-      <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-900/30 group-hover:scale-105 transition-transform">
-            <Flag className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-black text-white text-lg tracking-tight">TeeTime <span className="text-emerald-400">Ireland</span></span>
+        : "border-b border-white/6 shadow-2xl"
+    }`}
+      style={transparent ? {} : { background: "rgba(6,13,26,0.92)", backdropFilter: "blur(20px)" }}>
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <Link href="/">
+          <Logo size={34} />
         </Link>
 
-        <div className="flex items-center gap-3">
-          <Link href="/search?lat=53.3498&lng=-6.2603&location=Ireland&date=2026-04-27&radius=50&players=2"
-            className="hidden sm:flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors px-3 py-1.5 rounded-lg hover:bg-white/8">
-            <Search className="w-3.5 h-3.5" />
-            Find Tee Times
+        <div className="flex items-center gap-2">
+          <Link href={`/search?lat=53.3498&lng=-6.2603&location=Ireland&date=${new Date().toISOString().split("T")[0]}&radius=100&players=2`}
+            className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-xl hover:bg-white/6">
+            <Search className="w-3.5 h-3.5" /> Find Tee Times
           </Link>
 
           {session ? (
             <div className="relative">
               <button onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/12 rounded-full pl-2 pr-3 py-1.5 text-sm text-white transition-colors">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold">
+                className="flex items-center gap-2 border border-white/12 bg-white/6 hover:bg-white/10 rounded-full pl-2 pr-3 py-1.5 text-sm text-white transition-colors">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-black text-white shadow">
                   {user?.name?.[0]?.toUpperCase()}
                 </div>
-                <span className="hidden sm:block font-medium">{user?.name?.split(" ")[0]}</span>
-                <ChevronDown className="w-3 h-3 opacity-60" />
+                <span className="hidden sm:block font-semibold text-sm">{user?.name?.split(" ")[0]}</span>
+                <ChevronDown className="w-3.5 h-3.5 opacity-50" />
               </button>
 
               {open && (
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 text-slate-800"
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 text-slate-800 overflow-hidden"
                   onMouseLeave={() => setOpen(false)}>
-                  <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                    <div className="font-semibold text-sm">{user?.name}</div>
-                    <div className="text-xs text-slate-400">{session.user?.email}</div>
+                  <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 mb-1">
+                    <div className="font-black text-sm text-slate-900">{user?.name}</div>
+                    <div className="text-xs text-slate-400 truncate">{session.user?.email}</div>
                   </div>
                   <Link href="/my-bookings"
                     className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
@@ -70,7 +68,7 @@ export function Navbar() {
                     <Link href="/admin"
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
                       onClick={() => setOpen(false)}>
-                      <Flag className="w-4 h-4 text-emerald-600" /> Club Dashboard
+                      <Flag className="w-4 h-4 text-amber-500" /> Club Dashboard
                     </Link>
                   )}
                   <hr className="my-1 border-slate-100" />
@@ -84,12 +82,12 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-2">
               <Link href="/login"
-                className="text-sm text-gray-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-colors hidden sm:block">
+                className="text-sm text-gray-400 hover:text-white px-3 py-2 rounded-xl hover:bg-white/6 transition-colors hidden sm:block">
                 Sign In
               </Link>
               <Link href="/register"
-                className="btn-gold text-white text-sm px-4 py-2 rounded-xl font-bold">
-                Sign Up Free
+                className="btn-gold text-white text-sm px-4 py-2.5 rounded-xl font-black">
+                Join Free
               </Link>
             </div>
           )}

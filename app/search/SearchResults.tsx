@@ -40,7 +40,7 @@ export function SearchResults() {
   const lat = parseFloat(sp.get("lat") ?? "53.3498");
   const lng = parseFloat(sp.get("lng") ?? "-6.2603");
   const date = sp.get("date") ?? new Date().toISOString().split("T")[0];
-  const radius = sp.get("radius") ?? "20";
+  const radius = sp.get("radius") ?? "200";
   const maxPrice = sp.get("maxPrice") ?? "";
   const players = sp.get("players") ?? "1";
   const location = sp.get("location") ?? "Ireland";
