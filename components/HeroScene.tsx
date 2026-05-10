@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef } from "react";
-import * as THREE from "three";
 
 export function HeroScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -8,204 +7,200 @@ export function HeroScene() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    let animFrame: number;
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight, 0.1, 200);
-    camera.position.set(0, 0, 10);
+    function resize() {
+      if (!canvas) return;
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      ctx!.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    resize();
+    window.addEventListener("resize", resize);
 
-    // ── Lighting ──
-    const ambient = new THREE.AmbientLight(0xffffff, 0.3);
-    scene.add(ambient);
-    const goldLight = new THREE.PointLight(0xf59e0b, 6, 40);
-    goldLight.position.set(6, 6, 6);
-    scene.add(goldLight);
-    const emeraldLight = new THREE.PointLight(0x10b981, 4, 40);
-    emeraldLight.position.set(-8, -4, 4);
-    scene.add(emeraldLight);
-    const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    rimLight.position.set(-5, 3, -5);
-    scene.add(rimLight);
+    const W = () => canvas.offsetWidth;
+    const H = () => canvas.offsetHeight;
 
-    // ── Golf ball ──
-    const ballGeo = new THREE.SphereGeometry(2.4, 128, 128);
-    const ballMat = new THREE.MeshPhongMaterial({
-      color: 0xf5f0e8,
-      shininess: 120,
-      specular: new THREE.Color(0xf59e0b),
-      emissive: new THREE.Color(0x0a0a0a),
-    });
-    const ball = new THREE.Mesh(ballGeo, ballMat);
-    ball.position.set(3, 0, 0);
-    scene.add(ball);
+    // Phase timing (ms)
+    const FLIGHT_DUR = 2800;
+    const ROLL_DUR   = 900;
+    const HOLE_DUR   = 600;
+    const PAUSE_DUR  = 700;
+    const TOTAL      = FLIGHT_DUR + ROLL_DUR + HOLE_DUR + PAUSE_DUR;
 
-    // Wireframe overlay (dimple suggestion)
-    const wireGeo = new THREE.SphereGeometry(2.42, 24, 24);
-    const wireMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.04,
-    });
-    const wire = new THREE.Mesh(wireGeo, wireMat);
-    wire.position.copy(ball.position);
-    scene.add(wire);
+    let startTime = performance.now();
 
-    // ── Orbit ring ──
-    const ringGeo = new THREE.TorusGeometry(3.6, 0.018, 8, 120);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.3 });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.position.copy(ball.position);
-    ring.rotation.x = Math.PI / 4;
-    scene.add(ring);
-
-    const ring2Geo = new THREE.TorusGeometry(4.2, 0.01, 8, 120);
-    const ring2Mat = new THREE.MeshBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.2 });
-    const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-    ring2.position.copy(ball.position);
-    ring2.rotation.x = -Math.PI / 6;
-    ring2.rotation.y = Math.PI / 3;
-    scene.add(ring2);
-
-    // ── Orbiting mini balls ──
-    const miniBalls: THREE.Mesh[] = [];
-    const miniAngles = [0, Math.PI * 0.66, Math.PI * 1.33];
-    miniAngles.forEach((angle) => {
-      const geo = new THREE.SphereGeometry(0.18, 16, 16);
-      const mat = new THREE.MeshPhongMaterial({ color: 0xf59e0b, shininess: 80, emissive: 0x553300 });
-      const m = new THREE.Mesh(geo, mat);
-      scene.add(m);
-      miniBalls.push(m);
-      (m as unknown as { _angle: number })._angle = angle;
-    });
-
-    // ── Gold star particles ──
-    const PARTICLE_COUNT = 1800;
-    const positions = new Float32Array(PARTICLE_COUNT * 3);
-    const colors = new Float32Array(PARTICLE_COUNT * 3);
-    const sizes = new Float32Array(PARTICLE_COUNT);
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 60;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 30 - 5;
-
-      const gold = Math.random() > 0.5;
-      colors[i * 3] = gold ? 0.98 : 0.06;
-      colors[i * 3 + 1] = gold ? 0.62 : 0.73;
-      colors[i * 3 + 2] = gold ? 0.04 : 0.51;
-
-      sizes[i] = Math.random() * 3 + 1;
+    function easeInOutCubic(t: number) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+    function easeInQuad(t: number) { return t * t; }
+    function easeOutBounce(t: number) {
+      if (t < 1 / 2.75) return 7.5625 * t * t;
+      if (t < 2 / 2.75) { t -= 1.5 / 2.75; return 7.5625 * t * t + 0.75; }
+      if (t < 2.5 / 2.75) { t -= 2.25 / 2.75; return 7.5625 * t * t + 0.9375; }
+      t -= 2.625 / 2.75;
+      return 7.5625 * t * t + 0.984375;
     }
 
-    const particleGeo = new THREE.BufferGeometry();
-    particleGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    particleGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    particleGeo.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+    function draw(now: number) {
+      const w = W(), h = H();
+      ctx!.clearRect(0, 0, w, h);
 
-    const particleMat = new THREE.PointsMaterial({
-      size: 0.12,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.7,
-      sizeAttenuation: true,
-    });
-    const particles = new THREE.Points(particleGeo, particleMat);
-    scene.add(particles);
+      // ── Sky gradient background ──
+      const sky = ctx!.createLinearGradient(0, 0, 0, h * 0.65);
+      sky.addColorStop(0,   "#0c2340");
+      sky.addColorStop(0.4, "#1a4a7a");
+      sky.addColorStop(1,   "#5b9bd5");
+      ctx!.fillStyle = sky;
+      ctx!.fillRect(0, 0, w, h * 0.65);
 
-    // ── Flag pin (golf hole) ──
-    const poleGeo = new THREE.CylinderGeometry(0.025, 0.025, 1.8, 8);
-    const poleMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 100 });
-    const pole = new THREE.Mesh(poleGeo, poleMat);
-    pole.position.set(-4, -0.9, 1);
-    scene.add(pole);
+      // ── Fairway gradient ──
+      const grass = ctx!.createLinearGradient(0, h * 0.62, 0, h);
+      grass.addColorStop(0,   "#0f3d22");
+      grass.addColorStop(0.5, "#166534");
+      grass.addColorStop(1,   "#14532d");
+      ctx!.fillStyle = grass;
+      ctx!.fillRect(0, h * 0.62, w, h * 0.38);
 
-    const flagGeo = new THREE.PlaneGeometry(0.7, 0.45);
-    const flagMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide });
-    const flag = new THREE.Mesh(flagGeo, flagMat);
-    flag.position.set(-3.67, 0.42, 1);
-    scene.add(flag);
+      // ── Horizon glow ──
+      const glow = ctx!.createLinearGradient(0, h * 0.55, 0, h * 0.7);
+      glow.addColorStop(0, "rgba(180,220,255,0.18)");
+      glow.addColorStop(1, "rgba(22,101,52,0)");
+      ctx!.fillStyle = glow;
+      ctx!.fillRect(0, h * 0.55, w, h * 0.2);
 
-    const cupGeo = new THREE.CylinderGeometry(0.25, 0.2, 0.1, 16);
-    const cupMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
-    const cup = new THREE.Mesh(cupGeo, cupMat);
-    cup.position.set(-4, -1.8, 1);
-    scene.add(cup);
+      // Fairway stripe
+      ctx!.fillStyle = "rgba(20,83,45,0.5)";
+      ctx!.fillRect(0, h * 0.62, w, 3);
 
-    // ── Mouse ──
-    let mouseX = 0, mouseY = 0;
-    const onMouse = (e: MouseEvent) => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
-    };
-    window.addEventListener("mousemove", onMouse);
+      const groundY = h * 0.635;
+      const holeX   = w * 0.78;
+      const holeY   = groundY;
 
-    // ── Resize ──
-    const onResize = () => {
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener("resize", onResize);
+      // ── Flag pin ──
+      const poleBase = { x: holeX - 4, y: holeY };
+      const poleTop  = { x: holeX - 4, y: holeY - h * 0.28 };
 
-    // ── Animate ──
-    let frame: number;
-    const clock = new THREE.Clock();
+      ctx!.strokeStyle = "rgba(220,220,210,0.9)";
+      ctx!.lineWidth = 2;
+      ctx!.lineCap = "round";
+      ctx!.beginPath();
+      ctx!.moveTo(poleBase.x, poleBase.y);
+      ctx!.lineTo(poleTop.x, poleTop.y);
+      ctx!.stroke();
 
-    const animate = () => {
-      frame = requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
+      // Waving flag
+      const flagWave = Math.sin(now * 0.002) * 6;
+      ctx!.fillStyle = "#dc2626";
+      ctx!.beginPath();
+      ctx!.moveTo(poleTop.x, poleTop.y);
+      ctx!.bezierCurveTo(
+        poleTop.x + 14 + flagWave, poleTop.y + 5,
+        poleTop.x + 16 + flagWave, poleTop.y + 10,
+        poleTop.x,                 poleTop.y + 16
+      );
+      ctx!.closePath();
+      ctx!.fill();
 
-      ball.rotation.y = t * 0.18;
-      ball.rotation.x = t * 0.06;
-      wire.rotation.y = ball.rotation.y;
-      wire.rotation.x = ball.rotation.x;
+      // ── Hole cup ──
+      ctx!.fillStyle = "#080808";
+      ctx!.beginPath();
+      ctx!.ellipse(holeX, holeY + 2, 9, 4, 0, 0, Math.PI * 2);
+      ctx!.fill();
 
-      ring.rotation.z = t * 0.12;
-      ring2.rotation.z = -t * 0.08;
+      // ── Phase logic ──
+      const elapsed = (now - startTime) % TOTAL;
 
-      flag.rotation.y = Math.sin(t * 1.5) * 0.2;
+      if (elapsed < FLIGHT_DUR) {
+        // --- FLIGHT PHASE ---
+        const t = elapsed / FLIGHT_DUR;
 
-      miniBalls.forEach((m, i) => {
-        const mb = m as THREE.Mesh & { _angle: number };
-        const angle = mb._angle + t * (0.4 + i * 0.1);
-        m.position.set(
-          ball.position.x + Math.cos(angle) * 3.6,
-          ball.position.y + Math.sin(angle * 0.7) * 1.2,
-          ball.position.z + Math.sin(angle) * 1.8
-        );
-      });
+        // Bezier: start off-screen left, arc high, land near hole
+        const p0 = { x: -20,       y: groundY };
+        const p1 = { x: w * 0.18,  y: groundY - h * 0.7 };
+        const p2 = { x: w * 0.6,   y: groundY - h * 0.55 };
+        const p3 = { x: holeX - 30, y: groundY - 6 };
 
-      particles.rotation.y = t * 0.015;
-      particles.rotation.x = t * 0.008;
+        const mt = 1 - t;
+        const bx = mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x;
+        const by = mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y;
 
-      // Smooth camera parallax
-      camera.position.x += (mouseX * 1.2 - camera.position.x) * 0.035;
-      camera.position.y += (mouseY * 0.8 - camera.position.y) * 0.035;
-      camera.lookAt(0, 0, 0);
+        drawBall(ctx!, bx, by, 11, groundY);
 
-      renderer.render(scene, camera);
-    };
-    animate();
+        // Trail
+        for (let i = 1; i <= 8; i++) {
+          const tr = (t - i * 0.012);
+          if (tr < 0) continue;
+          const tm = 1 - tr;
+          const tx = tm*tm*tm*p0.x + 3*tm*tm*tr*p1.x + 3*tm*tr*tr*p2.x + tr*tr*tr*p3.x;
+          const ty = tm*tm*tm*p0.y + 3*tm*tm*tr*p1.y + 3*tm*tr*tr*p2.y + tr*tr*tr*p3.y;
+          ctx!.fillStyle = `rgba(255,255,255,${0.06 - i * 0.006})`;
+          ctx!.beginPath();
+          ctx!.arc(tx, ty, 5 - i * 0.4, 0, Math.PI * 2);
+          ctx!.fill();
+        }
 
+      } else if (elapsed < FLIGHT_DUR + ROLL_DUR) {
+        // --- ROLL PHASE ---
+        const t = (elapsed - FLIGHT_DUR) / ROLL_DUR;
+        const te = easeOutBounce(Math.min(t, 1));
+        const ballX = (holeX - 30) + te * 22;
+        const ballY = groundY - 11;
+        drawBall(ctx!, ballX, ballY, 11, groundY);
+
+      } else if (elapsed < FLIGHT_DUR + ROLL_DUR + HOLE_DUR) {
+        // --- INTO HOLE PHASE ---
+        const t = (elapsed - FLIGHT_DUR - ROLL_DUR) / HOLE_DUR;
+        const ballX = holeX - 30 + 22 + t * 12;
+        const scale = 1 - easeInQuad(t) * 0.9;
+        const ballY = groundY - 11 * scale + easeInQuad(t) * 6;
+        drawBall(ctx!, ballX, ballY, 11 * scale, groundY);
+      }
+      // PAUSE phase: nothing to draw for ball
+
+      animFrame = requestAnimationFrame(draw);
+    }
+
+    animFrame = requestAnimationFrame(draw);
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("mousemove", onMouse);
-      window.removeEventListener("resize", onResize);
-      renderer.dispose();
+      cancelAnimationFrame(animFrame);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: "none" }}
-    />
-  );
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />;
+}
+
+function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, groundY: number) {
+  if (r <= 0) return;
+
+  // Shadow on ground
+  const shadowAlpha = Math.max(0, 0.3 - Math.abs(y - groundY) / 300);
+  if (shadowAlpha > 0) {
+    ctx.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
+    ctx.beginPath();
+    ctx.ellipse(x, groundY + 2, r * 0.8, r * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Ball gradient
+  const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.05, x, y, r);
+  grad.addColorStop(0,   "#ffffff");
+  grad.addColorStop(0.5, "#f4f1ea");
+  grad.addColorStop(1,   "#c8bfaa");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Subtle dimples
+  ctx.fillStyle = "rgba(160,140,110,0.25)";
+  [[0.28, -0.22], [-0.18, 0.25], [0.1, 0.3], [-0.3, -0.1]].forEach(([dx, dy]) => {
+    ctx.beginPath();
+    ctx.arc(x + dx * r, y + dy * r, r * 0.16, 0, Math.PI * 2);
+    ctx.fill();
+  });
 }
