@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 340px;
+      background: #0d0d14;
+      color: #f1f1f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+    }
+    .header {
+      background: #16161f;
+      border-bottom: 1px solid #2a2a38;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-weight: 800; font-size: 15px; color: #9b7fdc; }
+    .badge-count {
+      background: #7c5cbf;
+      color: #fff;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .section { padding: 12px 16px; border-bottom: 1px solid #2a2a38; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #8888a0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .watchlist-item {
+      background: #16161f;
+      border: 1px solid #2a2a38;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .wi-info { flex: 1; min-width: 0; }
+    .wi-keywords { font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wi-meta { font-size: 11px; color: #8888a0; margin-top: 2px; }
+    .wi-profit { font-size: 11px; font-weight: 700; color: #22c55e; white-space: nowrap; }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .form { display: flex; flex-direction: column; gap: 8px; }
+    .form input {
+      background: #1e1e2a;
+      border: 1px solid #2a2a38;
+      border-radius: 6px;
+      color: #f1f1f5;
+      padding: 7px 10px;
+      font-size: 12px;
+      outline: none;
+      width: 100%;
+    }
+    .form input:focus { border-color: #7c5cbf; }
+    .form input::placeholder { color: #8888a0; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn-add {
+      background: #7c5cbf;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-add:hover { background: #9b7fdc; }
+    .empty { color: #8888a0; font-size: 12px; text-align: center; padding: 10px 0; }
+    .tip {
+      padding: 10px 16px;
+      font-size: 11px;
+      color: #8888a0;
+      line-height: 1.5;
+    }
+    .tip strong { color: #9b7fdc; }
+    select.form-sel {
+      background: #1e1e2a;
+      border: 1px solid #2a2a38;
+      border-radius: 6px;
+      color: #f1f1f5;
+      padding: 7px 10px;
+      font-size: 12px;
+      outline: none;
+      width: 100%;
+    }
+    select.form-sel:focus { border-color: #7c5cbf; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">VintedFlip</span>
+    <span class="badge-count" id="dealCount">0 deals</span>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Your Watchlist</div>
+    <div id="watchlistItems"><p class="empty">No deals added yet.</p></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Add Deal to Watch</div>
+    <div class="form">
+      <input id="keywords" type="text" placeholder='Keywords e.g. "hugo boss polo xl"' />
+      <select id="category" class="form-sel">
+        <option value="">Category (optional)</option>
+        <option value="mens_clothing">Men's Clothing</option>
+        <option value="perfume">Perfume / Fragrance</option>
+        <option value="electronics">Electronics</option>
+        <option value="shoes">Shoes</option>
+        <option value="accessories">Accessories</option>
+      </select>
+      <div class="form-row">
+        <input id="maxPrice" type="number" step="0.01" min="0" placeholder="Max buy €" />
+        <input id="sellPrice" type="number" step="0.01" min="0" placeholder="Sell for €" />
+      </div>
+      <button class="btn-add" id="addBtn">+ Add to Watchlist</button>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>How it works:</strong> Browse Vinted as normal. Any listing matching your keywords under your max price gets highlighted with the profit automatically shown.
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+.vf-highlight {
+  outline: 3px solid #7c5cbf !important;
+  border-radius: 8px;
+}
+
+.vf-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 9999;
+  background: #0d0d14ee;
+  border: 1px solid #7c5cbf;
+  border-radius: 8px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  pointer-events: none;
+}
+
+.vf-deal {
+  font-size: 10px;
+  font-weight: 800;
+  color: #9b7fdc;
+  letter-spacing: 0.5px;
+}
+
+.vf-profit {
+  font-size: 12px;
+  font-weight: 700;
+  color: #22c55e;
+}
+
+.vf-roi {
+  font-size: 10px;
+  color: #22c55e;
+  opacity: 0.8;
+}
+
+.vf-sell {
+  font-size: 10px;
+  color: #8888a0;
+}

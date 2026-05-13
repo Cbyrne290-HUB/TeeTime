@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "VintedFlip Alerts",
+  "version": "1.0.0",
+  "description": "Highlights underpriced Vinted listings and shows flip potential while you browse.",
+  "permissions": ["storage", "notifications"],
+  "host_permissions": [
+    "*://*.vinted.co.uk/*",
+    "*://*.vinted.ie/*",
+    "*://*.vinted.com/*",
+    "*://*.vinted.fr/*",
+    "*://*.vinted.de/*",
+    "*://*.vinted.nl/*",
+    "*://*.vinted.es/*",
+    "*://*.vinted.pl/*",
+    "*://*.vinted.be/*",
+    "*://*.vinted.pt/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "VintedFlip Alerts"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.vinted.co.uk/*",
+        "*://*.vinted.ie/*",
+        "*://*.vinted.com/*",
+        "*://*.vinted.fr/*",
+        "*://*.vinted.de/*",
+        "*://*.vinted.nl/*",
+        "*://*.vinted.es/*",
+        "*://*.vinted.pl/*",
+        "*://*.vinted.be/*",
+        "*://*.vinted.pt/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
