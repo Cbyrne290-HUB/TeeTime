@@ -5,45 +5,55 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function fmt(n: number): string {
-  return `€${n.toFixed(2)}`;
+export function haversineDistance(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function fmtDate(d: string | Date): string {
-  return new Date(d).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" });
+export function formatPrice(euros: number): string {
+  return `€${euros.toFixed(2)}`;
 }
 
-export const CATEGORIES = [
-  { value: "MENS_CLOTHING", label: "Men's Clothing" },
-  { value: "PERFUME", label: "Perfume / Fragrance" },
-  { value: "ELECTRONICS", label: "Electronics" },
-  { value: "SHOES", label: "Shoes" },
-  { value: "ACCESSORIES", label: "Accessories" },
-  { value: "OTHER", label: "Other" },
-] as const;
+export function formatDateTime(date: Date | string): string {
+  return new Date(date).toLocaleString("en-IE", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-export const CONDITIONS = [
-  { value: "NEW_WITH_TAGS", label: "New with tags" },
-  { value: "LIKE_NEW", label: "Like new" },
-  { value: "GOOD", label: "Good" },
-  { value: "FAIR", label: "Fair" },
-  { value: "POOR", label: "Poor" },
-] as const;
+export function formatTime(date: Date | string): string {
+  return new Date(date).toLocaleTimeString("en-IE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-export const STATUS_LABELS: Record<string, string> = {
-  BOUGHT: "In Stock",
-  LISTED: "Listed",
-  SOLD: "Sold",
-  ARCHIVED: "Archived",
-};
+export function formatDate(date: Date | string): string {
+  return new Date(date).toLocaleDateString("en-IE", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
-export const STATUS_COLORS: Record<string, string> = {
-  BOUGHT: "#f59e0b",
-  LISTED: "#3b82f6",
-  SOLD: "#22c55e",
-  ARCHIVED: "#6b7280",
-};
-
-export function categoryLabel(v: string) {
-  return CATEGORIES.find((c) => c.value === v)?.label ?? v;
+export function generateConfirmationCode(): string {
+  return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
