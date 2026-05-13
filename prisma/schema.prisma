@@ -7,155 +7,51 @@ datasource db {
   provider = "sqlite"
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  emailVerified DateTime?
-  phone         String?
-  passwordHash  String?
-  image         String?
-  role          String    @default("golfer")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts  Account[]
-  sessions  Session[]
-  bookings  Booking[]
-  clubAdmin ClubAdmin?
+model Item {
+  id        String   @id @default(cuid())
+  name      String
+  brand     String?
+  category  String
+  condition String
+  buyPrice  Float
+  buyDate   DateTime @default(now())
+  notes     String?
+  status    String   @default("BOUGHT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  listing   Listing?
+  sale      Sale?
+  @@index([status])
+  @@index([category])
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
+model Listing {
   id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId       String   @unique
+  listingPrice Float
+  listingDate  DateTime @default(now())
+  listingUrl   String?
+  item         Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
+model Sale {
+  id           String   @id @default(cuid())
+  itemId       String   @unique
+  salePrice    Float
+  saleDate     DateTime @default(now())
+  platformFee  Float    @default(0)
+  shippingCost Float    @default(0)
+  profit       Float
+  item         Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
-model GolfClub {
-  id          String  @id @default(cuid())
-  name        String
-  slug        String  @unique
-  description String?
-  address     String
-  county      String
-  lat         Float
-  lng         Float
-  phone       String?
-  email       String?
-  website     String?
-  imageUrl    String?
-  logoUrl     String?
-  holes       Int     @default(18)
-  par         Int     @default(72)
-  isActive    Boolean @default(true)
-
+model WatchlistItem {
+  id        String   @id @default(cuid())
+  keywords  String
+  category  String
+  maxPrice  Float
+  notes     String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  admins    ClubAdmin[]
-  schedules TeeTimeSchedule[]
-  teeTimes  TeeTime[]
-}
-
-model ClubAdmin {
-  id     String @id @default(cuid())
-  userId String @unique
-  clubId String
-
-  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  club GolfClub @relation(fields: [clubId], references: [id], onDelete: Cascade)
-}
-
-model TeeTimeSchedule {
-  id             String    @id @default(cuid())
-  clubId         String
-  name           String
-  daysOfWeek     String
-  startTime      String
-  endTime        String
-  intervalMins   Int       @default(10)
-  maxPlayers     Int       @default(4)
-  pricePerPlayer Float
-  isActive       Boolean   @default(true)
-  validFrom      DateTime
-  validTo        DateTime?
-
-  club     GolfClub  @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  teeTimes TeeTime[]
-}
-
-model TeeTime {
-  id             String   @id @default(cuid())
-  clubId         String
-  scheduleId     String?
-  dateTime       DateTime
-  maxPlayers     Int      @default(4)
-  bookedCount    Int      @default(0)
-  pricePerPlayer Float
-  isAvailable    Boolean  @default(true)
-
-  club     GolfClub         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  schedule TeeTimeSchedule? @relation(fields: [scheduleId], references: [id])
-  bookings Booking[]
-
-  @@unique([clubId, dateTime])
-  @@index([dateTime])
-  @@index([clubId, dateTime, isAvailable])
-}
-
-model Booking {
-  id               String  @id @default(cuid())
-  teeTimeId        String
-  userId           String?
-  confirmationCode String  @unique @default(cuid())
-
-  guestName       String
-  guestEmail      String
-  guestPhone      String
-  numberOfPlayers Int
-  needsTrolley    Boolean @default(false)
-  needsBuggy      Boolean @default(false)
-
-  status     String  @default("confirmed")
-  totalPrice Float
-  notes      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  teeTime TeeTime @relation(fields: [teeTimeId], references: [id])
-  user    User?   @relation(fields: [userId], references: [id])
-
-  @@index([guestEmail])
-  @@index([teeTimeId])
+  @@index([isActive])
 }
